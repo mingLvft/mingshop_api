@@ -19,3 +19,10 @@
 
 # Go workspace file
 go.work
+
+tmp
+.gitignore
+.idea
+config-debug_old.yaml
+config-pro_old.yaml
+.DS_Store
