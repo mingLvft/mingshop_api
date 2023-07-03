@@ -7,7 +7,7 @@ import (
 )
 
 func InitShopCartRouter(Router *gin.RouterGroup) {
-	GoodsRouter := Router.Group("shopcarts").Use(middlewares.JWTAuth())
+	GoodsRouter := Router.Group("shopcarts").Use(middlewares.JWTAuth()).Use(middlewares.Trace())
 	{
 		GoodsRouter.GET("", shop_cart.List)          //购物车列表
 		GoodsRouter.DELETE("/:id", shop_cart.Delete) //删除条目

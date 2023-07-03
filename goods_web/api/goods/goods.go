@@ -56,7 +56,10 @@ func List(ctx *gin.Context) {
 	request.Brand = int32(brandIdInt)
 
 	//调用商品的service服务
-	r, err := global.GoodsSrvClient.GoodsList(context.Background(), request)
+	//// 这里只能给trace传递一个span，无法传递tracer，要传递需要改源码
+	//parent, _ := ctx.Get("parentSpan")
+	//opentracing.ContextWithSpan(context.Background(), parent.(opentracing.Span))
+	r, err := global.GoodsSrvClient.GoodsList(context.WithValue(context.Background(), "ginContext", ctx), request)
 	if err != nil {
 		zap.S().Errorw("[List] 查询 【商品列表】失败")
 		api.HandleGrpcErrorToHttp(err, ctx)
@@ -105,7 +108,7 @@ func New(ctx *gin.Context) {
 		return
 	}
 	goodsClient := global.GoodsSrvClient
-	rsp, err := goodsClient.CreateGoods(context.Background(), &proto.CreateGoodsInfo{
+	rsp, err := goodsClient.CreateGoods(context.WithValue(context.Background(), "ginContext", ctx), &proto.CreateGoodsInfo{
 		Name:            goodsForm.Name,
 		GoodsSn:         goodsForm.GoodsSn,
 		Stocks:          goodsForm.Stocks,
@@ -137,7 +140,7 @@ func Detail(ctx *gin.Context) {
 		return
 	}
 
-	r, err := global.GoodsSrvClient.GetGoodsDetail(context.Background(), &proto.GoodInfoRequest{
+	r, err := global.GoodsSrvClient.GetGoodsDetail(context.WithValue(context.Background(), "ginContext", ctx), &proto.GoodInfoRequest{
 		Id: int32(i),
 	})
 	if err != nil {
@@ -178,7 +181,7 @@ func Delete(ctx *gin.Context) {
 		ctx.Status(http.StatusNotFound)
 		return
 	}
-	_, err = global.GoodsSrvClient.DeleteGoods(context.Background(), &proto.DeleteGoodsInfo{
+	_, err = global.GoodsSrvClient.DeleteGoods(context.WithValue(context.Background(), "ginContext", ctx), &proto.DeleteGoodsInfo{
 		Id: int32(i),
 	})
 	if err != nil {
@@ -215,7 +218,7 @@ func UpdateStatus(ctx *gin.Context) {
 		ctx.Status(http.StatusNotFound)
 		return
 	}
-	if _, err = global.GoodsSrvClient.UpdateGoods(context.Background(), &proto.CreateGoodsInfo{
+	if _, err = global.GoodsSrvClient.UpdateGoods(context.WithValue(context.Background(), "ginContext", ctx), &proto.CreateGoodsInfo{
 		Id:     int32(i),
 		IsHot:  *goodsStatusForm.IsHot,
 		IsNew:  *goodsStatusForm.IsNew,
@@ -242,7 +245,7 @@ func Update(ctx *gin.Context) {
 		ctx.Status(http.StatusNotFound)
 		return
 	}
-	if _, err = global.GoodsSrvClient.UpdateGoods(context.Background(), &proto.CreateGoodsInfo{
+	if _, err = global.GoodsSrvClient.UpdateGoods(context.WithValue(context.Background(), "ginContext", ctx), &proto.CreateGoodsInfo{
 		Id:              int32(i),
 		Name:            goodsForm.Name,
 		GoodsSn:         goodsForm.GoodsSn,

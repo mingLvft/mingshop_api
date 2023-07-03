@@ -7,7 +7,7 @@ import (
 )
 
 func InitBannerRouter(Router *gin.RouterGroup) {
-	BannerRouter := Router.Group("banners")
+	BannerRouter := Router.Group("banners").Use(middlewares.Trace())
 	{
 		BannerRouter.GET("", banners.List)                                                            // 轮播图列表页
 		BannerRouter.DELETE("/:id", middlewares.JWTAuth(), middlewares.IsAdminAuth(), banners.Delete) // 删除轮播图
