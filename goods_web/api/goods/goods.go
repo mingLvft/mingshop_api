@@ -2,6 +2,8 @@ package goods
 
 import (
 	"context"
+	sentinel "github.com/alibaba/sentinel-golang/api"
+	"github.com/alibaba/sentinel-golang/core/base"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"mingshop_api/goods_web/api"
@@ -59,13 +61,21 @@ func List(ctx *gin.Context) {
 	//// 这里只能给trace传递一个span，无法传递tracer，要传递需要改源码
 	//parent, _ := ctx.Get("parentSpan")
 	//opentracing.ContextWithSpan(context.Background(), parent.(opentracing.Span))
+
+	e, b := sentinel.Entry("goodsList", sentinel.WithTrafficType(base.Inbound))
+	if b != nil {
+		ctx.JSON(http.StatusTooManyRequests, gin.H{
+			"msg": "请求过于频繁",
+		})
+		return
+	}
 	r, err := global.GoodsSrvClient.GoodsList(context.WithValue(context.Background(), "ginContext", ctx), request)
 	if err != nil {
 		zap.S().Errorw("[List] 查询 【商品列表】失败")
 		api.HandleGrpcErrorToHttp(err, ctx)
 		return
 	}
-
+	e.Exit()
 	reMap := map[string]interface{}{
 		"total": r.Total,
 	}
